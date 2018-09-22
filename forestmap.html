@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>场长制森林资源管理系统</title>
+		<!--加载bootstrap css-->
+		<link rel="stylesheet" href="css/bootstrap.min.css" />
+		<!--加载leaflet css-->
+		<link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+		<!--加载额外库-->
+		<link rel="stylesheet" href="//at.alicdn.com/t/font_752750_vuh2cll8efa.css" />
+		<link rel="stylesheet" type="text/css" href="lib/font-awesome/css/font-awesome.min.css" />
+		<link rel="stylesheet" type="text/css" href="lib/flatui/css/flat-ui.min.css" />
+		<link rel="stylesheet" type="text/css" href="lib/awesome-marker/leaflet.awesome-markers.css" />
+		<link href="https://cdn.bootcss.com/bootstrap-sidebar/0.2.2/css/sidebar.min.css" rel="stylesheet">
+		<style>
+			html,
+			body {
+				height: 100%;
+				padding: 0;
+				margin: 0;
+			}
+			
+			;
+			.container-fluid {
+				width: 100%;
+			}
+			
+			#content {
+				margin-left: -15px;
+				margin-right: -15px;
+			}
+			
+			#viewDiv {
+				top: 0;
+				height: 860px;
+				width: 100%;
+				padding-right: 0px;
+				margin-left: 0px;
+				margin: 0;
+			}
+			
+			#sidebar {
+				background-color: #e1f5fe;
+			}
+			
+			#mapContent {
+				margin-left: 0px;
+				margin-right: -30px;
+			}
+			
+			[class*="col-"] {
+				padding: 0px;
+			}
+			
+			.row.no-gutter {
+				margin-left: 0;
+				margin-right: 0;
+			}
+			
+			.row.no-gutter>[class*='col-'] {
+				padding-right: 0;
+				padding-left: 0;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="container-fluid">
+			<nav class="navbar navbar-inverse navbar-lg navbar-expand-lg navbar-static-top" style="margin-bottom: 0; border-radius: 0; z-index:2; margin-left: -15px; margin-right: -15px;">
+				<a class="navbar-brand" href="index.html" style="color: white;">
+					<i class="iconfont icon-senlin" style="font-size: 22px;"></i> 场长制森林资源管理系统
+				</a>
+				<button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse-01"></button>
+				<div class="collapse navbar-collapse" id="navbar-collapse-01">
+					<ul class="nav navbar-nav mr-auto">
+						<li>
+							<a href="javascript:void(0)" onclick="panTo()" title="返回地图中心"><i class="fa fa-home fa-lg"></i></a>
+						</li>
+						<li class="dropdown">
+							<a href="#"><i class="fa fa-search fa-lg dropdown-toggle" data-toggle="dropdown"></i> 空间查询</a>
+							<ul class="dropdown-menu" role="menu">
+    							<li><a href="#">Action</a></li>
+							    <li><a href="#">Another action</a></li>
+							    <li><a href="#">Something else here</a></li>
+							    <li class="divider"></li>
+							    <li><a href="#">Separated link</a></li>
+							  </ul>
+						</li>
+					</ul>
+					<form class="navbar-form form-inline my-2 my-lg-0" action="#" role="search">
+						<div class="form-group">
+							<div class="input-group">
+								<input class="form-control" id="navbarInput-01" type="search" placeholder="Search">
+								<span class="input-group-btn">
+            <button type="submit" class="btn"><span class="fui-search"></span></button>
+								</span>
+							</div>
+						</div>
+					</form>
+				</div>
+			</nav>
+			<div class="row" id="content">
+				<div class="col-md-2">
+					<div id="sidebar">
+						
+					</div>
+				</div>
+				<div class="col-md-10" id="mapContent">
+					<div id="viewDiv"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<!--加载leaflet-->
+	<script src="lib/leaflet/leaflet.js"></script>
+	<!--加载esri-leaflet 插件-->
+	<script src="lib/esri-leaflet/esri-leaflet.js"></script>
+	<!--加载leaflet插件-->
+	<!--加载jQuery-->
+	<script src="js/jquery-3.1.1.min.js"></script>
+	<!--加载bootstrap-->
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/flat-ui.min.js"></script>
+	<script src="lib/awesome-marker/leaflet.awesome-markers.min.js"></script>
+	<script src="https://cdn.bootcss.com/bootstrap-sidebar/0.2.2/js/sidebar.min.js"></script>
+	<!--map urls-->
+	<script src="js/mapUrlTemplate.js"></script>
+	<script>
+		// 添加天地图底图
+		var basemaplayer = L.tileLayer(
+			mapUrlTemplate.tdt_img, {
+				subdomains: [0, 1, 2, 3, 4, 5, 6, 7]
+			});
+
+		// 古树名木marker
+		var oldTreesMarker = L.AwesomeMarkers.icon({
+			icon: 'leaf',
+			markerColor: 'green',
+			prefix: 'fa'
+		})
+
+		// 添加Feature图层
+		var featurelayer_7 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/7",
+			style: {
+				color: "#37474f",
+				weight: 10,
+				fillOpacity: 0.85
+			}
+		});
+
+		var featurelayer_6 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/6",
+			style: {
+				color: "#e0f2f1",
+				weight: 3.5,
+				fillOpacity: 0.85,
+				fillColor: "#1de9b6"
+			}
+		});
+
+		var featurelayer_5 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/3",
+			style: {
+				fillColor: "#fff59d",
+				fillOpacity: 0.85,
+				color: "#fffde7",
+				weight: 3.5
+			}
+		});
+
+		var featurelayer_4 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/5",
+			style: {
+				fillColor: "blue",
+				fillOpacity: 0.9
+			}
+		});
+
+		var featurelayer_3 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/4",
+			style: {
+				fillColor: "#4e342e",
+				fillOpacity: 0.8,
+				color: "#4e342e"
+			}
+		});
+
+		var featurelayer_2 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/0",
+			style: {
+				color: "#e0e0e0",
+				opacity: 0.9,
+				weight: 8,
+				color: "#424242"
+			}
+		});
+
+		var featurelayer_1 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/1",
+			style: {
+				color: "#9e9e9e",
+				opacity: 1.0,
+				weight: 5,
+				color: "#424242"
+			}
+		});
+
+		var featurelayer_0 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/2",
+			pointToLayer: function(geojson, latlng) {
+				return L.marker(latlng, {
+					icon: oldTreesMarker
+				})
+			}
+		});
+
+		var forestLayer = L.layerGroup([]);
+
+		var map = L.map('viewDiv', {
+			zoomControl: true,
+			attributionControl: true,
+			useCors: true,
+			layers: [
+				basemaplayer,
+				featurelayer_7,
+				featurelayer_6,
+				featurelayer_5,
+				featurelayer_4,
+				featurelayer_3,
+				featurelayer_2,
+				featurelayer_1,
+				featurelayer_0
+			]
+		}).setView([30.352, 119.515], 15);
+
+		// 添加比例尺
+		L.control.scale({
+			imperial: false
+		}).addTo(map);
+
+		// 添加地图选择
+		var baselayers = {
+			"天地图": basemaplayer
+		};
+
+		var overlays = {
+			"林场范围": featurelayer_7,
+			"小班范围": featurelayer_6,
+			"公益林": featurelayer_5,
+			"林场水域": featurelayer_4,
+			"林场居民点": featurelayer_3,
+			"道路单线": featurelayer_1,
+			"道路双线": featurelayer_0,
+			"古树名木": featurelayer_2
+		};
+
+		L.control.layers(baselayers, overlays).addTo(map);
+
+		// 回到原点
+		const panTo = () => {
+			map.panTo([30.352, 119.515], {
+				animate: true
+			});
+		};
+	</script>
+	<script>
+		var navigation = responsiveNav("#nav",
+			animate: true, // Boolean: 是否启动CSS过渡效果（transitions）， true 或 false
+			transition: 400, // Integer: 过渡效果的执行速度，以毫秒（millisecond）为单位
+			label: "Menu", // String: Label for the navigation toggle
+			insert: "after", // String: Insert the toggle before or after the navigation
+			customToggle: "", // Selector: Specify the ID of a custom toggle
+			openPos: "relative", // String: Position of the opened nav, relative or static
+			jsClass: "js", // String: 'JS enabled' class which is added to <html> el
+			debug: false, // Boolean: Log debug messages to console, true 或 false
+			init: function() {}, // Function: Init callback
+			open: function() {}, // Function: Open callback
+			close: function() {} // Function: Close callback
+		);
+	</script>
+	<script>
+		// 自适应调整地图
+		window.onresize = function() {
+			document.getElementById('viewDiv').style.height = document.documentElement.clientHeight - 80 + "px";
+		}
+	</script>
+
+</html>

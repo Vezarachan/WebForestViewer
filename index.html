@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<title>场长制森林资源管理系统</title>
+
+		<!-- Bootstrap core CSS-->
+		<link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+		<!-- Custom fonts for this template-->
+		<link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+
+		<!-- Page level plugin CSS-->
+		<link href="vendor/datatables/dataTables.bootstrap4.css" rel="stylesheet">
+
+		<!-- Custom styles for this template-->
+		<link href="css/sb-admin.css" rel="stylesheet">
+
+		<!-- awesome marker -->
+		<link rel="stylesheet" type="text/css" href="lib/awesome-marker/leaflet.awesome-markers.css" />
+
+		<!-- iconfont icons -->
+		<link rel="stylesheet" href="//at.alicdn.com/t/font_752750_0qo10ibe2oz.css" />
+
+		<!-- 加载leaflet css -->
+		<link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+
+		<!-- fontawesome -->
+		<link rel="stylesheet" type="text/css" href="lib/font-awesome/css/font-awesome.min.css" />
+		<!-- datatables -->
+		<link rel="stylesheet" type="text/css" href="vendor/datatables/dataTables.bootstrap4.min.css" />
+		<!-- minimap -->
+		<link rel="stylesheet" type="text/css" href="lib/minimap/Control.MiniMap.min.css"/>
+		<style>
+			#mapContent {
+				padding: 0;
+			}
+			
+			#viewDiv {
+				top: 0;
+				height: 855px;
+				width: 100%;
+				padding-bottom: 0;
+				margin: 0;
+			}
+			
+			[class*="col-"] {
+				padding: 0px;
+			}
+			
+			.row.no-gutter {
+				margin-left: 0;
+				margin-right: 0;
+			}
+			
+			.row.no-gutter>[class*='col-'] {
+				padding-right: 0;
+				padding-left: 0;
+			}
+		</style>
+	</head>
+
+	<body id="page-top">
+
+		<nav class="navbar navbar-expand navbar-dark bg-dark static-top">
+
+			<a class="navbar-brand mr-1" href="index.html"><i class="iconfont icon-senlin" style="font-size: 20px;"></i> 场长制森林资源管理系统</a>
+
+			<button class="btn btn-link btn-sm text-white order-1 order-sm-0" id="sidebarToggle" href="#">
+        <i class="fa fa-navicon fa-lg"></i>
+      </button>
+
+			<ul class="navbar-nav ml-auto ml-md-5">
+				<li class="nav-item">
+					<a class="nav-link" href="javascript:void(0)" data-toggle="tooltip" title="返回原点" onclick="panTo()"><i class="fa fa-home fa-lg"></i></a>
+				</li>
+				<!--<li class="nav-item">
+					<a class="navbar-text" style="color: rgb(154, 156, 160);">|</a>
+				</li>-->
+				<!--<li class="nav-item">
+					<a class="nav-link" href="javascript:void(0)" data-toggle="tooltip" title="点击查询" onclick="clickSelection()"><i class="fa fa-mouse-pointer"></i></a>
+				</li>
+				<li class="nav-item dropdown no-arrow mx-1">
+					<a class="nav-link dropdown-toggle" href="#" id="rec-selection" role="button" data-toggle="dropdown" title="多边形查询" aria-haspopup="true" aria-expanded="false">
+						<i class="fa fa-square-o"></i>
+					</a>
+					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="rec-selection">
+						<a class="dropdown-item" href="javascript:void(0)" onclick="openSelectLayerModal()"><i class="fa fa-pencil"></i> 绘制选框</a>
+						<a class="dropdown-item" href="javascript:void(0)" onclick="executeQuery()"><i class="fa fa-question-circle"></i> 进行查询</a>
+					</div>
+				</li>-->
+				<li class="nav-item">
+					<a class="navbar-text" style="color: rgb(154, 156, 160);">|</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="javascript:void(0)" data-toggle="tooltip" title="快速查询" onclick="openFastModal()"><i class="fa fa-table"></i></a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="javascript:void(0)" data-toggle="tooltip" title="详细查询" onclick="openDetailedModal()"><i class="fa fa-plus-square"></i></a>
+				</li>
+				<li class="nav-item">
+					<a class="navbar-text" style="color: rgb(154, 156, 160);">|</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="javascript:void(0)" id="delete-btn" data-toggle="tooltip" title="清除选择" onclick="DeleteGraphics()"><i class="fa fa-close"></i></a>
+				</li>
+			</ul>
+
+			<!-- Navbar Search -->
+			<form class="d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0">
+				<div class="input-group">
+					<input type="text" class="form-control" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
+					<div class="input-group-append">
+						<button class="btn btn-primary" type="button">
+              <i class="fas fa-search"></i>
+            </button>
+					</div>
+				</div>
+			</form>
+
+			<!-- Navbar -->
+			<ul class="navbar-nav ml-auto ml-md-0">
+				<li class="nav-item dropdown no-arrow mx-1">
+					<a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="fas fa-bell fa-fw"></i>
+						<span class="badge badge-danger">9+</span>
+					</a>
+					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="alertsDropdown">
+						<a class="dropdown-item" href="#">Action</a>
+						<a class="dropdown-item" href="#">Another action</a>
+						<div class="dropdown-divider"></div>
+						<a class="dropdown-item" href="#">Something else here</a>
+					</div>
+				</li>
+				<li class="nav-item dropdown no-arrow mx-1">
+					<a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="fas fa-envelope fa-fw"></i>
+						<span class="badge badge-danger">7</span>
+					</a>
+					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="messagesDropdown">
+						<a class="dropdown-item" href="#">Action</a>
+						<a class="dropdown-item" href="#">Another action</a>
+						<div class="dropdown-divider"></div>
+						<a class="dropdown-item" href="#">Something else here</a>
+					</div>
+				</li>
+				<li class="nav-item dropdown no-arrow">
+					<a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="fas fa-user-circle fa-fw"></i>
+					</a>
+					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+						<a class="dropdown-item" href="#">设置</a>
+						<a class="dropdown-item" href="#">个人中心</a>
+						<div class="dropdown-divider"></div>
+						<a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">登出</a>
+					</div>
+				</li>
+			</ul>
+
+		</nav>
+
+		<div id="wrapper">
+
+			<!-- Sidebar -->
+			<ul class="sidebar navbar-nav">
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="iconfont icon-guanligongju"></i>
+						<span>管理工具</span>
+					</a>
+					<div class="dropdown-menu" aria-labelledby="pagesDropdown">
+						<h6 class="dropdown-header">Login Screens:</h6>
+						<a class="dropdown-item" href="login.html">Login</a>
+						<a class="dropdown-item" href="register.html">Register</a>
+						<a class="dropdown-item" href="forgot-password.html">Forgot Password</a>
+						<div class="dropdown-divider"></div>
+						<h6 class="dropdown-header">Other Pages:</h6>
+						<a class="dropdown-item" href="404.html">404 Page</a>
+						<a class="dropdown-item" href="blank.html">Blank Page</a>
+					</div>
+				</li>
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="iconfont icon-fenxi"></i>
+						<span>统计分析</span>
+					</a>
+					<div class="dropdown-menu" aria-labelledby="pagesDropdown">
+						<a class="dropdown-item" href="login.html">缓冲区分析</a>
+						<a class="dropdown-item" href="register.html">Register</a>
+						<a class="dropdown-item" href="forgot-password.html">Forgot Password</a>
+						<h6 class="dropdown-header">Other Pages:</h6>
+						<a class="dropdown-item" href="404.html">404 Page</a>
+						<a class="dropdown-item" href="blank.html">Blank Page</a>
+					</div>
+				</li>
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="iconfont icon-senlinfanghuo"></i>
+						<span>森林防火</span>
+					</a>
+					<div class="dropdown-menu" aria-labelledby="pagesDropdown">
+						<a class="dropdown-item" href="login.html">火灾报告</a>
+						<a class="dropdown-item" href="register.html">火灾位置</a>
+					</div>
+				</li>
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="iconfont icon-hulinyuanxunhushijiantongji"></i>
+						<span>护林员巡护</span>
+					</a>
+					<div class="dropdown-menu" aria-labelledby="pagesDropdown">
+						<a class="dropdown-item" href="login.html">护林员轨迹</a>
+						<a class="dropdown-item" href="register.html">护林员报告</a>
+					</div>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="#" data-toggle="modal" data-target="#about-forestmanager">
+						<i class="iconfont icon-guanyu"></i>
+						<span>关于</span>
+					</a>
+				</li>
+			</ul>
+
+			<div id="content-wrapper" style="padding-top: 0; padding-bottom: 0;">
+
+				<div class="container-fluid" style="padding-left: 0; padding-right: 0;">
+
+					<div class="mapContent">
+						<div id="viewDiv"></div>
+					</div>
+					<div class="charts">
+					</div>
+					<!-- Sticky Footer -->
+					<footer class="sticky-footer" style="height: 30px;">
+						<div class="container my-auto">
+							<div class="copyright text-center my-auto">
+								<span>Copyright © Forest Manager 2018</span>
+							</div>
+						</div>
+					</footer>
+
+				</div>
+				<!-- /.content-wrapper -->
+
+			</div>
+			<!-- /#wrapper -->
+
+			<!-- Scroll to Top Button-->
+			<a class="scroll-to-top rounded" href="#page-top">
+				<i class="fas fa-angle-up"></i>
+			</a>
+
+			<!-- Logout Modal-->
+			<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+							<button class="close" type="button" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+						</div>
+						<div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+						<div class="modal-footer">
+							<button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+							<a class="btn btn-primary" href="login.html">登出</a>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!--图形化查询modal-->
+			<div class="modal fade" id="selectLayerModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLabel">选择图层</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+						</div>
+						<div class="modal-body">
+							<select class="form-control select select-primary select-block mbl" id="layer-selection">
+								<option value="2">林场小班</option>
+								<option value="3">公益林</option>
+								<option value="8">古树名木</option>
+								<option value="4">林场水域</option>
+								<option value="5">林场居民点</option>
+							</select>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+							<button type="button" class="btn btn-primary" onclick="getSelectedLayer()">确认</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!--快速查询modal-->
+			<div class="modal fade" id="queryModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLabel">选择图层</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+						</div>
+						<div class="modal-body">
+							<select class="form-control select select-primary select-block mbl">
+								<option value="2">林场小班</option>
+								<option value="3">公益林</option>
+								<option value="8">古树名木</option>
+								<option value="4">林场水域</option>
+								<option value="5">林场居民点</option>
+							</select>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+							<button type="submit" class="btn btn-primary" onclick="confirmLayer()">确认</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- About Modal-->
+			<div class="modal fade" id="about-forestmanager" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="about-title">关于</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+						</div>
+						<div class="modal-body">
+							场长制森林资源管理系统围绕林场场长的一些活动建立了一系列的工作流程，方便场长的工作。
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">返回</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Fast Search Modal-->
+			<div class="modal fade" id="fastSearch" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<div class="container-fluid">
+								<div class="row">
+									<div class="col-md-2">
+										<h6 class="modal-title" id="exampleModalLabel">快速查询</h6>
+									</div>
+									<div class="col-md-8">
+										<select class="form-control select select-primarymbl" id="fast-selected-layer">
+											<option value="2">林场小班</option>
+											<option value="3">公益林</option>
+											<option value="8">古树名木</option>
+										</select>
+									</div>
+
+									<div class="col-md-2">
+										<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                			<span aria-hidden="true">&times;</span>
+                          				</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="modal-body">
+							<div class="container-fluid">
+								<div class="row">
+									<div class="col-md-3">
+										<select class="form-control select select-primary select-block mbl" id="fields-quick"></select>
+									</div>
+									<div class="col-md-3 offset-md-1">
+										<select class="form-control select select-primary select-block mbl">
+											<option value=">">大于</option>
+											<option value=">=">大于等于</option>
+											<option value="=">等于</option>
+											<option value="<=">小于等于</option>
+											<option value="<">小于</option>
+										</select>
+									</div>
+									<div class="col-md-3 offset-md-1">
+										<input type="text" class="form-control" placeholder="输入属性值" />
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+							<button type="submit" class="btn btn-primary" onclick="quickQuery()">确认</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Detailed Search Modal-->
+			<div class="modal fade" id="detailedSearch" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<div class="container-fluid">
+								<div class="row">
+									<div class="col-md-2">
+										<h6 class="modal-title" id="exampleModalLabel">详细查询</h6>
+									</div>
+									<div class="col-md-8">
+										<select class="form-control select select-primarymbl">
+											<option value="2">林场小班</option>
+											<option value="3">公益林</option>
+											<option value="8">古树名木</option>
+										</select>
+									</div>
+
+									<div class="col-md-2">
+										<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                			<span aria-hidden="true">&times;</span>
+                          				</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="modal-body">
+
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+							<button type="submit" class="btn btn-primary" onclick="confirmLayer()">确认</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Detailed Search Modal-->
+			<div class="modal fade" id="detailedSearch" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+						</div>
+						<div class="modal-body">
+							<table class="display"></table>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+							<button type="submit" class="btn btn-primary" onclick="confirmLayer()">确认</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal fade" id="dataTable" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+					<div class="modal-content">
+						<div class="modal-body">
+							<table class="display" id="detailedTable">
+								<!--<thead>
+									<tr>
+										<th>
+											
+										</th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>-->
+							</table>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+							<button type="submit" class="btn btn-primary" onclick="confirmLayer()">确认</button>
+						</div>
+					</div>
+				</div>
+			</div>
+	</body>
+	<!-- Bootstrap core JavaScript-->
+	<script src="vendor/jquery/jquery.min.js"></script>
+	<script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+	<!-- Core plugin JavaScript-->
+	<script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+	<!-- Page level plugin JavaScript-->
+	<script src="vendor/chart.js/Chart.min.js"></script>
+	<script src="vendor/datatables/jquery.dataTables.js"></script>
+	<script src="vendor/datatables/dataTables.bootstrap4.js"></script>
+
+	<!-- Custom scripts for all pages-->
+	<script src="js/sb-admin.min.js"></script>
+
+	<!--加载leaflet-->
+	<script src="lib/leaflet/leaflet.js"></script>
+	<script src="lib/leaflet/leaflet-src.js"></script>
+	<!--加载esri-leaflet 插件-->
+	<script src="lib/esri-leaflet/esri-leaflet.js"></script>
+	<script src="lib/proj4.js"></script>
+	<script src="lib/proj4-src.js"></script>
+	<script src="lib/proj4leaflet.js"></script>
+	<script src="lib/minimap/Control.MiniMap.min.js"></script>
+	<script src="lib/awesome-marker/leaflet.awesome-markers.min.js"></script>
+	<script src="lib/awesome-marker/leaflet.awesome-markers.min.js"></script>
+	<script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
+	<script src="vendor/datatables/jquery.dataTables.min.js"></script>
+	<script src="js/mapUrlTemplate.js"></script>
+	<script src="js/layerFields.js"></script>
+	<script>
+		// 定义坐标系
+		const CRS_4549 = new L.Proj.CRS('EPSG:4549', 
+		'+proj=tmerc +lat_0=0 +lon_0=120 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs', 
+		{
+			resolutions: [
+			156367.7919628329  // 0
+            ,78183.89598141646
+            ,39091.94799070823
+            ,19545.973995354114
+            ,9772.986997677057
+            ,4886.4934988385285
+            ,2443.2467494192642
+            ,1221.6233747096321
+            ,610.8116873548161
+            ,305.40584367740803
+            ,152.70292183870401
+            ,76.35146091935201
+            ,38.175730459676004
+            ,19.087865229838002
+            ,9.543932614919001
+            ,4.7719663074595005
+            ,2.3859831537297502
+            ,1.1929915768648751
+            ,0.5964957884324376
+            ,0.2982478942162188 // 19
+			]
+		});
+		
+		// 高亮要素
+		const highlightFeature = (e) => {
+			let layer = e.target;
+			layer.setStyle({
+				weight: 8,
+				color: '#90caf9',
+				fillOpacity: 0.6,
+				fillColor: "#b2ebf2"
+			});
+			console.log(e);
+		}
+		
+		// 重置要素样式
+		const resetHighlight = (e) => {
+			let layer = e.target;
+			switch(e.target.options.url) {
+				case "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/6/":
+					layer.setStyle({
+						color: "#e0f2f1",
+						weight: 3,
+						fillOpacity: 0.75,
+						fillColor: "#1de9b6"
+					});
+					break;
+				case "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/3/":
+					layer.setStyle({
+						fillColor: "#f39c12",
+						fillOpacity: 0.85,
+						color: "#fffde7",
+						weight: 3
+					});
+					break;
+				case "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/5/":
+					layer.setStyle({
+						fillColor: "blue",
+						fillOpacity: 0.75
+					});
+					break;
+				case "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/4/":
+					layer.setStyle({
+						fillColor: "#4e342e",
+						fillOpacity: 0.75,
+						color: "#4e342e"
+					});
+					break;
+				case "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/1/":
+					layer.setStyle({
+						color: "#e0e0e0",
+						opacity: 0.75,
+						weight: 8,
+						color: "#424242"
+					})
+					break;
+				case "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/0/":
+					layer.setStyle({
+						color: "#9e9e9e",
+						opacity: 1.0,
+						weight: 5,
+						color: "#424242"
+					});
+					break;
+			}
+		}
+		
+		// 移动至选择的要素
+		function zoomToFeature(e) {
+			map.fitBounds(e.target.getBounds());
+		}
+
+		function onEachFeature(feature, layer) {
+			layer.on({
+				mouseover: highlightFeature,
+				mouseout: resetHighlight,
+				click: zoomToFeature
+			});
+		}
+
+		const fl5popupTemplate = "<table class=\"table table-bordered\"><tbody><tr><td>地名：{地名}</td><td>地类：{地类}</td></tr><tr><td>地貌：{地貌}</td><td>海拔：{海拔}m" +
+			"</td></tr><tr><td>面积：{面积}</td><td>坡度：{坡度}°</td></tr><tr><td>起源：{起源}</td><td>郁闭度：{郁闭度}</td></tr><tr><td>" +
+			"平均高：{平均高}</td><td>优势树种：{优势树种}</td></tr> </tbody></table>"
+
+		const fl6popupTemplate = "<table class=\"table table-bordered\"><tbody><tr><td>村名称：{村名称}</td><td>林班名：{林班名}</td></tr><tr><td>小地名：{小地名}</td><td>海拔：{海拔}m</td></tr><br>" +
+			"<tr><td>面积：{面积}</td><td>坡度：{坡度}°</td></tr><tr><td>坡位：{坡位}</td><td>起源：{起源}</td></tr><tr><td>郁闭度：{郁闭度}</td><td>平均胸径：{平均胸径}</td></tr>" +
+			"<tr><td>年龄：{年龄}</td><td>龄种：{龄种}</td></tr><tr><td>平均高：{平均高}</td><td>优势树种：{优势树种}</td></tr><tr><td>立地等级：{立地等级}</td><td>" +
+			"管理类别：{管理类别}</td></tr></tbody></table>";
+
+		const fl0popupTemplate = "<table class=\"table table-bordered\"><tbody><tr><td>古树编号：{古树编}</td><td>小地名：{小地}</td></tr>" +
+			"<tr><td>学名：{拉_1}</td><td>俗名：{中市}</td></tr><tr><td>纬度：{纬度}</td><td>经度：{经地}</td></tr><tr><td>分布特点：{分布特}</td><td>" +
+			"古树等级：{古树等}</td></tr> </tbody></table>";
+
+		// 添加天地图底图
+		var basemaplayer = L.tileLayer(
+			mapUrlTemplate.tdt_img, {
+				subdomains: [0, 1, 2, 3, 4, 5, 6, 7]
+			});
+
+		// 古树名木marker
+		var oldTreesMarker = L.AwesomeMarkers.icon({
+			icon: 'leaf',
+			markerColor: 'green',
+			prefix: 'fa'
+		})
+		// 定义地图
+		var map = L.map('viewDiv', {
+			zoomControl: true,
+			attributionControl: true,
+			useCors: true,
+			crs: CRS_4549,
+			layers: [
+				basemaplayer
+			]
+		}).setView([30.352, 119.515], 16);
+
+		// 添加Feature图层
+		// 林场范围
+		var featurelayer_7 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/7",
+			style: {
+				color: "#37474f",
+				weight: 10,
+				fillOpacity: 0.75
+			},
+			useCors: true
+		}).addTo(map);
+
+		// 林场小班
+		var featurelayer_6 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/6",
+			style: {
+				color: "#e0f2f1",
+				weight: 3,
+				fillOpacity: 0.75,
+				fillColor: "#1de9b6"
+			},
+			onEachFeature: onEachFeature,
+			useCors: true
+		}).bindPopup(function(e) {
+			return L.Util.template(fl6popupTemplate, e.feature.properties);
+		}).addTo(map);
+
+		// 公益林
+		var featurelayer_5 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/3",
+			style: {
+				fillColor: "#f39c12",
+				fillOpacity: 0.85,
+				color: "#fffde7",
+				weight: 3
+			},
+			onEachFeature: onEachFeature,
+			useCors: true
+		}).bindPopup(function(e) {
+			return L.Util.template(fl5popupTemplate, e.feature.properties);
+		}).addTo(map);
+
+		// 林场水域
+		var featurelayer_4 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/5",
+			style: {
+				fillColor: "blue",
+				fillOpacity: 0.75
+			},
+			onEachFeature: onEachFeature,
+			useCors: true
+		}).addTo(map);
+
+		// 林场居民点
+		var featurelayer_3 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/4",
+			style: {
+				fillColor: "#4e342e",
+				fillOpacity: 0.75,
+				color: "#4e342e"
+			},
+			onEachFeature: onEachFeature,
+			useCors: true
+		}).addTo(map);
+
+		// 道路双线
+		var featurelayer_2 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/1",
+			style: {
+				color: "#e0e0e0",
+				opacity: 0.75,
+				weight: 8,
+				color: "#424242"
+			},
+			onEachFeature: onEachFeature,
+			useCors: true
+		}).addTo(map);
+
+		// 道路单线
+		var featurelayer_1 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/0",
+			style: {
+				color: "#9e9e9e",
+				opacity: 1.0,
+				weight: 5,
+				color: "#424242"
+			},
+			onEachFeature: onEachFeature,
+			useCors: true
+		}).addTo(map);
+
+		// 古树名木
+		var featurelayer_0 = L.esri.featureLayer({
+			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/2",
+			pointToLayer: function(geojson, latlng) {
+				return L.marker(latlng, {
+					icon: oldTreesMarker
+				})
+			},
+			useCors: true
+		}).bindPopup(function(e) {
+			return L.Util.template(fl0popupTemplate, e.feature.properties);
+		}).addTo(map);
+
+		const layerGroup = L.layerGroup([featurelayer_7, featurelayer_6, featurelayer_5, featurelayer_4, featurelayer_3, featurelayer_2, featurelayer_1, featurelayer_0]);
+
+		// 添加比例尺
+		L.control.scale({
+			imperial: false
+		}).addTo(map);
+
+		// 添加地图选择
+		var baselayers = {
+			"天地图": basemaplayer
+		};
+
+		var overlays = {
+			"林场界线": featurelayer_7,
+			"林场小班": featurelayer_6,
+			"公益林": featurelayer_5,
+			"林场水域": featurelayer_4,
+			"林场居民点": featurelayer_3,
+			"道路双线": featurelayer_1,
+			"道路单线": featurelayer_2,
+			"古树名木": featurelayer_0,
+		};
+
+		L.control.layers(baselayers, overlays).addTo(map);
+		
+		
+//		var miniMap = new L.Control.MiniMap(basemaplayer).addTo(map);
+		// 回到原点
+		const panTo = () => {
+			map.panTo([30.352, 119.515], {
+				animate: true
+			});
+		};
+
+		// 选择的图层Id
+		var selectedLayerId;
+		// 选择的图层
+		var selectedLayer;
+		// 框选图形
+		var poly; //生成的图形
+		var previousIds = [];
+		var queryFeatures;
+
+		//		const clickSelection = () => {
+		//			map.on("click", function(evt) {
+		//				if(queryFeatures) {
+		//					map.removeLayer(queryFeatures);
+		//				}
+		//
+		//				L.esri.identifyFeatures({
+		//						url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/MapServer",
+		//						useCors: true,
+		//						layers: [0, 1, 2, 3, 4, 5, 6, 7]
+		//					}).on(map)
+		//					.at([evt.latlng.lat, evt.latlng.lng])
+		//					.tolerance(3)
+		//					.run(function(error, featureCollection, response) {
+		//						if(featureCollection.features.length > 0) {
+		//							queryFeatures = L.geoJSON(featureCollection.features[featureCollection.features.length - 1]).addTo(map);
+		//							if(featureCollection.features[featureCollection.features.length - 1].layerId === 3) {
+		//								queryFeatures.bindPopup(function() {
+		//									return L.Util.template(fl5popupTemplate, featureCollection.features[featureCollection.features.length - 1].properties);
+		//								}).openPopup();
+		//							} else if(featureCollection.features[featureCollection.features.length - 1].layerId === 6) {
+		//								queryFeatures.bindPopup(function() {
+		//									return L.Util.template(fl6popupTemplate, featureCollection.features[featureCollection.features.length - 1].properties);
+		//								}).openPopup();
+		//							}
+		//							alert(featureCollection.features[featureCollection.features.length - 1].layerId);
+		//							console.log(featureCollection.features[featureCollection.features.length - 1].layerId);
+		//							console.log(response.results[response.results.length - 1].attributes);
+		//						}
+		//					});
+		//			});
+		//		}
+
+		//		// 获取选择的图层
+		//		function getSelectedLayer() {
+		//			selectedLayerId = $('#layer-selection option:selected');
+		//			selectedLayer = layerGroup.getLayer(selectedLayerId.val());
+		//			alert(selectedLayerId.text());
+		//			$('#selectLayerModal').modal('hide');
+		//		}
+		//
+		//		// 绘图事件
+		//		$('#selectLayerModal').on('hidden.bs.modal', function() {
+		//			DrawPolygon();
+		//		});
+		//
+		//		// 执行查询
+		//		function executeQuery() {
+		//			queryLayer();
+		//			map.removeLayer(poly);
+		//		}
+		//
+		//		// 图形查询
+		//		function queryLayer() {
+		//			if(queryFeatures) {
+		//				map.removeLayer(queryFeatures);
+		//			}
+		//			DrawPolygon();
+		//			selectedLayer.query().intersects(poly).run(function(error, featureCollection, response) {
+		//				if(featureCollection.features.length) {
+		//					queryFeatures = L.geoJSON(featureCollection.features).addTo(map);
+		//					$('#detailedTable').modal('show');
+		//					console.log(featureCollection.features);
+		//				}
+		//			})
+		//		}
+		//
+		//		// 绘制多边形
+		//		function DrawPolygon() {
+		//			var points = [];
+		//			var pointsSym;
+		//			var lines = new L.polyline([]);
+		//			map.on('click', onClick); //点击地图
+		//			map.on('dblclick', onDoubleClick); //双击完成
+		//
+		//			function onClick(evt) {
+		//				points.push([evt.latlng.lat, evt.latlng.lng]);
+		//				lines.addLatLng(evt.latlng);
+		//				map.addLayer(lines);
+		//			}
+		//
+		//			function onDoubleClick(evt) {
+		//				poly = L.polygon([points]).addTo(map);
+		//				map.removeLayer(lines);
+		//				points = [];
+		//				lines = new L.polyline([]);
+		//				map.off('click', onClick);
+		//			}
+		//		}
+
+		$('#fastSearch').on('shown.bs.modal', function() {
+			selectedLayerId = $('#fast-selected-layer option:selected').val();
+			selectedLayer = layerGroup.getLayer(selectedLayerId);
+			var	str = (index, value) => { return '<option value="${index}">${value}</option>'};
+			if(selectedLayerId == 2) {
+				layerFields.layer_6.every(function(index, vlaue) {
+					$('#fields-quick').append(str(index, value));
+				})
+			} else if(selectedLayerId == 3) {
+				$.each(layerFields.layer_5, function(index, value) {
+					$('#fields-quick').append(str);
+				});
+			} else if(selectedLayerId == 8) {
+				$.each(layerFields.layer_0, function(index, value) {
+					$('#fields-quick').append(str);
+				});
+			}
+		})
+
+		// 查询事件
+		const quickQuery = () => {
+
+			alert(selectedLayerId);
+			$('#fastSearch').modal('hide');
+		}
+
+		// 清除选择以及图形
+		function DeleteGraphics() {
+			map.off("click");
+			map.off("dblclick");
+			map.removeLayer(queryFeatures);
+		}
+	</script>
+
+	<script>
+		// 自适应调整地图
+		window.onresize = function() {
+			document.getElementById('viewDiv').style.height = document.documentElement.clientHeight - 80 + "px";
+		}
+	</script>
+	<script>
+		// Tooltip提示
+		$(function() {
+			$("[data-toggle='tooltip']").tooltip();
+		});
+	</script>
+	<script>
+		function openSelectLayerModal() {
+			$('#selectLayerModal').modal('show');
+		}
+
+		function openFastModal() {
+			$('#fastSearch').modal('show');
+		}
+
+		function openDetailedModal() {
+			$('#detailedSearch').modal('show');
+		}
+	</script>
+
+</html>
