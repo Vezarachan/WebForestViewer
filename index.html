@@ -36,8 +36,6 @@
 		<link rel="stylesheet" type="text/css" href="lib/font-awesome/css/font-awesome.min.css" />
 		<!-- datatables -->
 		<link rel="stylesheet" type="text/css" href="vendor/datatables/dataTables.bootstrap4.min.css" />
-		<!-- minimap -->
-		<link rel="stylesheet" type="text/css" href="lib/minimap/Control.MiniMap.min.css"/>
 		<style>
 			#mapContent {
 				padding: 0;
@@ -500,8 +498,9 @@
 	<script src="lib/proj4.js"></script>
 	<script src="lib/proj4-src.js"></script>
 	<script src="lib/proj4leaflet.js"></script>
-	<script src="lib/minimap/Control.MiniMap.min.js"></script>
 	<script src="lib/awesome-marker/leaflet.awesome-markers.min.js"></script>
+	<script src="lib/leaflet.ChineseTmsProviders.js"></script>
+	<script src="lib/leaflet-tilelayer-wmts.js"></script>
 	<script src="lib/awesome-marker/leaflet.awesome-markers.min.js"></script>
 	<script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
 	<script src="vendor/datatables/jquery.dataTables.min.js"></script>
@@ -509,33 +508,14 @@
 	<script src="js/layerFields.js"></script>
 	<script>
 		// 定义坐标系
-		const CRS_4549 = new L.Proj.CRS('EPSG:4549', 
-		'+proj=tmerc +lat_0=0 +lon_0=120 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs', 
-		{
-			resolutions: [
-			156367.7919628329  // 0
-            ,78183.89598141646
-            ,39091.94799070823
-            ,19545.973995354114
-            ,9772.986997677057
-            ,4886.4934988385285
-            ,2443.2467494192642
-            ,1221.6233747096321
-            ,610.8116873548161
-            ,305.40584367740803
-            ,152.70292183870401
-            ,76.35146091935201
-            ,38.175730459676004
-            ,19.087865229838002
-            ,9.543932614919001
-            ,4.7719663074595005
-            ,2.3859831537297502
-            ,1.1929915768648751
-            ,0.5964957884324376
-            ,0.2982478942162188 // 19
-			]
-		});
-		
+		const CRS_4549 = new L.Proj.CRS('EPSG:4549',
+			'+proj=tmerc +lat_0=0 +lon_0=120 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs', {
+				resolutions: [
+					156367.7919628329 // 0
+					, 78183.89598141646, 39091.94799070823, 19545.973995354114, 9772.986997677057, 4886.4934988385285, 2443.2467494192642, 1221.6233747096321, 610.8116873548161, 305.40584367740803, 152.70292183870401, 76.35146091935201, 38.175730459676004, 19.087865229838002, 9.543932614919001, 4.7719663074595005, 2.3859831537297502, 1.1929915768648751, 0.5964957884324376, 0.2982478942162188 // 19
+				]
+			});
+
 		// 高亮要素
 		const highlightFeature = (e) => {
 			let layer = e.target;
@@ -547,7 +527,7 @@
 			});
 			console.log(e);
 		}
-		
+
 		// 重置要素样式
 		const resetHighlight = (e) => {
 			let layer = e.target;
@@ -599,7 +579,7 @@
 					break;
 			}
 		}
-		
+
 		// 移动至选择的要素
 		function zoomToFeature(e) {
 			map.fitBounds(e.target.getBounds());
@@ -626,12 +606,6 @@
 			"<tr><td>学名：{拉_1}</td><td>俗名：{中市}</td></tr><tr><td>纬度：{纬度}</td><td>经度：{经地}</td></tr><tr><td>分布特点：{分布特}</td><td>" +
 			"古树等级：{古树等}</td></tr> </tbody></table>";
 
-		// 添加天地图底图
-		var basemaplayer = L.tileLayer(
-			mapUrlTemplate.tdt_img, {
-				subdomains: [0, 1, 2, 3, 4, 5, 6, 7]
-			});
-
 		// 古树名木marker
 		var oldTreesMarker = L.AwesomeMarkers.icon({
 			icon: 'leaf',
@@ -643,11 +617,30 @@
 			zoomControl: true,
 			attributionControl: true,
 			useCors: true,
-			crs: CRS_4549,
-			layers: [
-				basemaplayer
-			]
 		}).setView([30.352, 119.515], 16);
+
+		// 添加天地图底图
+		var basemaplayer = L.layerGroup(
+			[
+				L.tileLayer(
+					mapUrlTemplate.tdt_img, {
+						subdomains: [0, 1, 2, 3, 4, 5, 6, 7],
+						crossOrigin: true
+					}),
+				L.tileLayer(
+					mapUrlTemplate.tdt_imglabel, {
+						subdomains: [0, 1, 2, 3, 4, 5, 6, 7],
+						crossOrigin: true
+					}
+				),
+				L.tileLayer(
+					mapUrlTemplate.tdt_border, {
+						subdomains: [0, 1, 2, 3, 4, 5, 6, 7],
+						crossOrigin: true
+					}
+				)
+			]
+		).addTo(map);
 
 		// 添加Feature图层
 		// 林场范围
@@ -656,7 +649,7 @@
 			style: {
 				color: "#37474f",
 				weight: 10,
-				fillOpacity: 0.75
+				fillOpacity: 0.65
 			},
 			useCors: true
 		}).addTo(map);
@@ -667,7 +660,7 @@
 			style: {
 				color: "#e0f2f1",
 				weight: 3,
-				fillOpacity: 0.75,
+				fillOpacity: 0.65,
 				fillColor: "#1de9b6"
 			},
 			onEachFeature: onEachFeature,
@@ -696,7 +689,7 @@
 			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/5",
 			style: {
 				fillColor: "blue",
-				fillOpacity: 0.75
+				fillOpacity: 0.65
 			},
 			onEachFeature: onEachFeature,
 			useCors: true
@@ -707,7 +700,7 @@
 			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/4",
 			style: {
 				fillColor: "#4e342e",
-				fillOpacity: 0.75,
+				fillOpacity: 0.65,
 				color: "#4e342e"
 			},
 			onEachFeature: onEachFeature,
@@ -719,7 +712,7 @@
 			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/1",
 			style: {
 				color: "#e0e0e0",
-				opacity: 0.75,
+				opacity: 0.65,
 				weight: 8,
 				color: "#424242"
 			},
@@ -777,9 +770,8 @@
 		};
 
 		L.control.layers(baselayers, overlays).addTo(map);
-		
-		
-//		var miniMap = new L.Control.MiniMap(basemaplayer).addTo(map);
+
+		//		var miniMap = new L.Control.MiniMap(basemaplayer).addTo(map);
 		// 回到原点
 		const panTo = () => {
 			map.panTo([30.352, 119.515], {
@@ -889,7 +881,9 @@
 		$('#fastSearch').on('shown.bs.modal', function() {
 			selectedLayerId = $('#fast-selected-layer option:selected').val();
 			selectedLayer = layerGroup.getLayer(selectedLayerId);
-			var	str = (index, value) => { return '<option value="${index}">${value}</option>'};
+			var str = (index, value) => {
+				return '<option value="${index}">${value}</option>'
+			};
 			if(selectedLayerId == 2) {
 				layerFields.layer_6.every(function(index, vlaue) {
 					$('#fields-quick').append(str(index, value));
