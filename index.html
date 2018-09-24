@@ -43,7 +43,7 @@
 			
 			#viewDiv {
 				top: 0;
-				height: 855px;
+				height: 870px;
 				width: 100%;
 				padding-bottom: 0;
 				margin: 0;
@@ -82,18 +82,18 @@
 				<!--<li class="nav-item">
 					<a class="navbar-text" style="color: rgb(154, 156, 160);">|</a>
 				</li>-->
-				<!--<li class="nav-item">
-					<a class="nav-link" href="javascript:void(0)" data-toggle="tooltip" title="点击查询" onclick="clickSelection()"><i class="fa fa-mouse-pointer"></i></a>
+				<li class="nav-item">
+					<a class="nav-link" href="javascript:void(0)" data-toggle="tooltip" title="点击查询" onclick="enableClickSelection()"><i class="fa fa-mouse-pointer"></i></a>
 				</li>
 				<li class="nav-item dropdown no-arrow mx-1">
-					<a class="nav-link dropdown-toggle" href="#" id="rec-selection" role="button" data-toggle="dropdown" title="多边形查询" aria-haspopup="true" aria-expanded="false">
+					<a class="nav-link" href="javascript:void(0)" id="rec-selection" data-toggle="tooltip" title="多边形查询" onclick="DrawPolygon()">
 						<i class="fa fa-square-o"></i>
 					</a>
-					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="rec-selection">
-						<a class="dropdown-item" href="javascript:void(0)" onclick="openSelectLayerModal()"><i class="fa fa-pencil"></i> 绘制选框</a>
+					<!--<div class="dropdown-menu dropdown-menu-right" aria-labelledby="rec-selection">
+						<a class="dropdown-item" href="javascript:void(0)" onclick="DrawPolygon()"><i class="fa fa-pencil"></i> 绘制选框</a>
 						<a class="dropdown-item" href="javascript:void(0)" onclick="executeQuery()"><i class="fa fa-question-circle"></i> 进行查询</a>
-					</div>
-				</li>-->
+					</div>-->
+				</li>
 				<li class="nav-item">
 					<a class="navbar-text" style="color: rgb(154, 156, 160);">|</a>
 				</li>
@@ -174,14 +174,9 @@
 						<span>管理工具</span>
 					</a>
 					<div class="dropdown-menu" aria-labelledby="pagesDropdown">
-						<h6 class="dropdown-header">Login Screens:</h6>
-						<a class="dropdown-item" href="login.html">Login</a>
-						<a class="dropdown-item" href="register.html">Register</a>
-						<a class="dropdown-item" href="forgot-password.html">Forgot Password</a>
-						<div class="dropdown-divider"></div>
-						<h6 class="dropdown-header">Other Pages:</h6>
-						<a class="dropdown-item" href="404.html">404 Page</a>
-						<a class="dropdown-item" href="blank.html">Blank Page</a>
+						<a class="dropdown-item" href="login.html"><i class="fa fa-plus-circle"></i> 增加要素</a>
+						<a class="dropdown-item" href="register.html"><i class="fa fa-pencil"></i> 修改要素</a>
+						<a class="dropdown-item" href="forgot-password.html"><i class="fa fa-eraser"></i> 删除要素</a>
 					</div>
 				</li>
 				<li class="nav-item dropdown">
@@ -190,12 +185,12 @@
 						<span>统计分析</span>
 					</a>
 					<div class="dropdown-menu" aria-labelledby="pagesDropdown">
-						<a class="dropdown-item" href="login.html">缓冲区分析</a>
-						<a class="dropdown-item" href="register.html">Register</a>
-						<a class="dropdown-item" href="forgot-password.html">Forgot Password</a>
-						<h6 class="dropdown-header">Other Pages:</h6>
-						<a class="dropdown-item" href="404.html">404 Page</a>
-						<a class="dropdown-item" href="blank.html">Blank Page</a>
+						<a class="dropdown-item" href="javascript:void(0)" onclick="singleBufferService()"><i class="fa fa-circle-o fa-1x"></i>单缓冲区分析</a>
+						<a class="dropdown-item" href="register.html">
+							<span class="fa-stack fa-lg" style="font-size: 10px;">
+							  <i class="fa fa-circle-o-notch fa-stack-2x"></i>
+							  <i class="fa fa-circle fa-stack-1x"></i>
+							</span>多环缓冲区分析</a>
 					</div>
 				</li>
 				<li class="nav-item dropdown">
@@ -232,8 +227,6 @@
 
 					<div class="mapContent">
 						<div id="viewDiv"></div>
-					</div>
-					<div class="charts">
 					</div>
 					<!-- Sticky Footer -->
 					<footer class="sticky-footer" style="height: 30px;">
@@ -499,14 +492,16 @@
 	<script src="lib/proj4-src.js"></script>
 	<script src="lib/proj4leaflet.js"></script>
 	<script src="lib/awesome-marker/leaflet.awesome-markers.min.js"></script>
-	<script src="lib/leaflet.ChineseTmsProviders.js"></script>
-	<script src="lib/leaflet-tilelayer-wmts.js"></script>
-	<script src="lib/awesome-marker/leaflet.awesome-markers.min.js"></script>
+	<script src="lib/esri-leaflet-gp/esri-leaflet-gp.js"></script>
 	<script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
 	<script src="vendor/datatables/jquery.dataTables.min.js"></script>
 	<script src="js/mapUrlTemplate.js"></script>
 	<script src="js/layerFields.js"></script>
 	<script>
+		/**
+		 * @author Leon Croft
+		 */
+
 		// 定义坐标系
 		const CRS_4549 = new L.Proj.CRS('EPSG:4549',
 			'+proj=tmerc +lat_0=0 +lon_0=120 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs', {
@@ -525,7 +520,7 @@
 				fillOpacity: 0.6,
 				fillColor: "#b2ebf2"
 			});
-			console.log(e);
+			//			console.log(e);
 		}
 
 		// 重置要素样式
@@ -588,21 +583,21 @@
 		function onEachFeature(feature, layer) {
 			layer.on({
 				mouseover: highlightFeature,
-				mouseout: resetHighlight,
-				click: zoomToFeature
+				mouseout: resetHighlight
+				//				click: zoomToFeature
 			});
 		}
 
-		const fl5popupTemplate = "<table class=\"table table-bordered\"><tbody><tr><td>地名：{地名}</td><td>地类：{地类}</td></tr><tr><td>地貌：{地貌}</td><td>海拔：{海拔}m" +
+		const fl5popupTemplate = "<i class='fa fa-leaf fa-2x' style='color:#b9f6ca;'></i><br><table class=\"table table-bordered\"><tbody><tr><td>地名：{地名}</td><td>地类：{地类}</td></tr><tr><td>地貌：{地貌}</td><td>海拔：{海拔}m" +
 			"</td></tr><tr><td>面积：{面积}</td><td>坡度：{坡度}°</td></tr><tr><td>起源：{起源}</td><td>郁闭度：{郁闭度}</td></tr><tr><td>" +
 			"平均高：{平均高}</td><td>优势树种：{优势树种}</td></tr> </tbody></table>"
 
-		const fl6popupTemplate = "<table class=\"table table-bordered\"><tbody><tr><td>村名称：{村名称}</td><td>林班名：{林班名}</td></tr><tr><td>小地名：{小地名}</td><td>海拔：{海拔}m</td></tr><br>" +
+		const fl6popupTemplate = "<i class='fa fa-leaf fa-2x' style='color:#b9f6ca;'></i><br><table class=\"table table-bordered\"><tbody><tr><td>村名称：{村名称}</td><td>林班名：{林班名}</td></tr><tr><td>小地名：{小地名}</td><td>海拔：{海拔}m</td></tr><br>" +
 			"<tr><td>面积：{面积}</td><td>坡度：{坡度}°</td></tr><tr><td>坡位：{坡位}</td><td>起源：{起源}</td></tr><tr><td>郁闭度：{郁闭度}</td><td>平均胸径：{平均胸径}</td></tr>" +
 			"<tr><td>年龄：{年龄}</td><td>龄种：{龄种}</td></tr><tr><td>平均高：{平均高}</td><td>优势树种：{优势树种}</td></tr><tr><td>立地等级：{立地等级}</td><td>" +
 			"管理类别：{管理类别}</td></tr></tbody></table>";
 
-		const fl0popupTemplate = "<table class=\"table table-bordered\"><tbody><tr><td>古树编号：{古树编}</td><td>小地名：{小地}</td></tr>" +
+		const fl0popupTemplate = "<i class='fa fa-leaf fa-2x' style='color:#b9f6ca;'></i><br><table class=\"table table-bordered\"><tbody><tr><td>古树编号：{古树编}</td><td>小地名：{小地}</td></tr>" +
 			"<tr><td>学名：{拉_1}</td><td>俗名：{中市}</td></tr><tr><td>纬度：{纬度}</td><td>经度：{经地}</td></tr><tr><td>分布特点：{分布特}</td><td>" +
 			"古树等级：{古树等}</td></tr> </tbody></table>";
 
@@ -619,7 +614,9 @@
 			useCors: true,
 		}).setView([30.352, 119.515], 16);
 
-		// 添加天地图底图
+		/**
+		 * 添加天地图底图
+		 */
 		var basemaplayer = L.layerGroup(
 			[
 				L.tileLayer(
@@ -638,7 +635,17 @@
 						subdomains: [0, 1, 2, 3, 4, 5, 6, 7],
 						crossOrigin: true
 					}
-				)
+				),
+				L.esri.featureLayer({
+					url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/6",
+					style: {
+						color: "#37474f",
+						weight: 5,
+						fillOpacity: 0.65,
+						fillColor: "#b0bec5"
+					},
+					useCors: true
+				})
 			]
 		).addTo(map);
 
@@ -654,7 +661,9 @@
 			useCors: true
 		}).addTo(map);
 
-		// 林场小班
+		/**
+		 * 林场小班
+		 */
 		var featurelayer_6 = L.esri.featureLayer({
 			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/6",
 			style: {
@@ -665,11 +674,11 @@
 			},
 			onEachFeature: onEachFeature,
 			useCors: true
-		}).bindPopup(function(e) {
-			return L.Util.template(fl6popupTemplate, e.feature.properties);
 		}).addTo(map);
 
-		// 公益林
+		/**
+		 * 公益林
+		 */
 		var featurelayer_5 = L.esri.featureLayer({
 			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/3",
 			style: {
@@ -680,11 +689,11 @@
 			},
 			onEachFeature: onEachFeature,
 			useCors: true
-		}).bindPopup(function(e) {
-			return L.Util.template(fl5popupTemplate, e.feature.properties);
 		}).addTo(map);
 
-		// 林场水域
+		/**
+		 * 林场水域
+		 */
 		var featurelayer_4 = L.esri.featureLayer({
 			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/5",
 			style: {
@@ -695,7 +704,9 @@
 			useCors: true
 		}).addTo(map);
 
-		// 林场居民点
+		/**
+		 * 林场居民点
+		 */
 		var featurelayer_3 = L.esri.featureLayer({
 			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/4",
 			style: {
@@ -707,7 +718,9 @@
 			useCors: true
 		}).addTo(map);
 
-		// 道路双线
+		/**
+		 * 路双线
+		 */
 		var featurelayer_2 = L.esri.featureLayer({
 			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/1",
 			style: {
@@ -720,7 +733,9 @@
 			useCors: true
 		}).addTo(map);
 
-		// 道路单线
+		/**
+		 * 道路单线
+		 */
 		var featurelayer_1 = L.esri.featureLayer({
 			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/0",
 			style: {
@@ -733,7 +748,9 @@
 			useCors: true
 		}).addTo(map);
 
-		// 古树名木
+		/**
+		 * 古树名木
+		 */
 		var featurelayer_0 = L.esri.featureLayer({
 			url: "http://111.231.64.206:8080/arcgis/rest/services/forest_layer_dev_ed/FeatureServer/2",
 			pointToLayer: function(geojson, latlng) {
@@ -742,8 +759,6 @@
 				})
 			},
 			useCors: true
-		}).bindPopup(function(e) {
-			return L.Util.template(fl0popupTemplate, e.feature.properties);
 		}).addTo(map);
 
 		const layerGroup = L.layerGroup([featurelayer_7, featurelayer_6, featurelayer_5, featurelayer_4, featurelayer_3, featurelayer_2, featurelayer_1, featurelayer_0]);
@@ -778,6 +793,20 @@
 				animate: true
 			});
 		};
+
+		const enableClickSelection = () => {
+			featurelayer_6.bindPopup(function(e1) {
+				return L.Util.template(fl6popupTemplate, e1.feature.properties);
+			});
+
+			featurelayer_5.bindPopup(function(e2) {
+				return L.Util.template(fl5popupTemplate, e2.feature.properties);
+			});
+
+			featurelayer_0.bindPopup(function(e3) {
+				return L.Util.template(fl0popupTemplate, e3.feature.properties);
+			});
+		}
 
 		// 选择的图层Id
 		var selectedLayerId;
@@ -855,62 +884,81 @@
 		//			})
 		//		}
 		//
-		//		// 绘制多边形
-		//		function DrawPolygon() {
-		//			var points = [];
-		//			var pointsSym;
-		//			var lines = new L.polyline([]);
-		//			map.on('click', onClick); //点击地图
-		//			map.on('dblclick', onDoubleClick); //双击完成
-		//
-		//			function onClick(evt) {
-		//				points.push([evt.latlng.lat, evt.latlng.lng]);
-		//				lines.addLatLng(evt.latlng);
-		//				map.addLayer(lines);
-		//			}
-		//
-		//			function onDoubleClick(evt) {
-		//				poly = L.polygon([points]).addTo(map);
-		//				map.removeLayer(lines);
-		//				points = [];
-		//				lines = new L.polyline([]);
-		//				map.off('click', onClick);
-		//			}
-		//		}
+		// 绘制多边形
+		function DrawPolygon() {
+			var points = [];
+			var pointsSym;
+			var lines = new L.polyline([]);
+			map.on('click', onClick); //点击地图
+			map.on('dblclick', onDoubleClick); //双击完成
 
-		$('#fastSearch').on('shown.bs.modal', function() {
-			selectedLayerId = $('#fast-selected-layer option:selected').val();
-			selectedLayer = layerGroup.getLayer(selectedLayerId);
-			var str = (index, value) => {
-				return '<option value="${index}">${value}</option>'
-			};
-			if(selectedLayerId == 2) {
-				layerFields.layer_6.every(function(index, vlaue) {
-					$('#fields-quick').append(str(index, value));
-				})
-			} else if(selectedLayerId == 3) {
-				$.each(layerFields.layer_5, function(index, value) {
-					$('#fields-quick').append(str);
-				});
-			} else if(selectedLayerId == 8) {
-				$.each(layerFields.layer_0, function(index, value) {
-					$('#fields-quick').append(str);
-				});
+			function onClick(evt) {
+				points.push([evt.latlng.lat, evt.latlng.lng]);
+				lines.addLatLng(evt.latlng);
+				map.addLayer(lines);
 			}
-		})
 
-		// 查询事件
-		const quickQuery = () => {
+			function onDoubleClick(evt) {
+				poly = L.polygon([points]).addTo(map);
+				map.removeLayer(lines);
+				points = [];
+				lines = new L.polyline([]);
+				map.off('click', onClick);
+			}
+		}
 
-			alert(selectedLayerId);
-			$('#fastSearch').modal('hide');
+		// 动态改变选框
+		var str = (index, value) => '<option value="' + index + '">' + value + '</option>';
+		$('#fast-selected-layer').on('change', function() {
+			$("#fields-quick").find("option").remove();
+			if($(this).val() == 2) {
+				for(var i = 0; i < layerFields.layer_6.length; i++) {
+					$('#fields-quick').append(str(i + 1, layerFields.layer_6[i]));
+				}
+			} else if($(this).val() == 3) {
+				for(var i = 0; i < layerFields.layer_5.length; i++) {
+					$('#fields-quick').append(str(i + 1, layerFields.layer_5[i]));
+				}
+			} else if($(this).val() == 8) {
+				for(var i = 0; i < layerFields.layer_0.length; i++) {
+					$('#fields-quick').append(str(i + 1, layerFields.layer_0[i]));
+				}
+			}
+		});
+
+		// GP单缓冲
+		var singleBuffer;
+		var bufferSingleLayer = L.featureGroup();
+		map.addLayer(bufferSingleLayer);
+		const singleBufferService = () => {
+			singleBuffer = L.esri.GP.service({
+				url: "http://111.231.64.206:8080/arcgis/rest/services/Buffer/GPServer/Buffer",
+				useCors: true
+			});
+
+			singleBuffer.setParam("distance", 50);
+
+			map.on('click', function(evt) {
+				bufferSingleLayer.clearLayers();
+				singleBuffer.setParam("input", evt.target.feature);
+				const bufferCallback = (error, response, raw) => {
+					bufferSingleLayer.addLayer(L.geoJSON(response.output));
+				};
+				singleBuffer.run(bufferCallback)
+			});
 		}
 
 		// 清除选择以及图形
 		function DeleteGraphics() {
 			map.off("click");
-			map.off("dblclick");
-			map.removeLayer(queryFeatures);
+			//			map.off("dblclick");
+			//			map.removeLayer(queryFeatures);
+			if(poly) {
+				map.removeLayer(poly);
+			}
+			featurelayer_6.unbindPopup();
+			featurelayer_5.unbindPopup();
+			featurelayer_0.unbindPopup();
 		}
 	</script>
 
