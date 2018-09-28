@@ -185,7 +185,7 @@
 						<span>统计分析</span>
 					</a>
 					<div class="dropdown-menu" aria-labelledby="pagesDropdown">
-						<a class="dropdown-item" href="javascript:void(0)" onclick="singleBufferService()"><i class="fa fa-circle-o fa-1x"></i>单缓冲区分析</a>
+						<a class="dropdown-item" href="javascript:void(0)"><i class="fa fa-circle-o fa-1x"></i>单缓冲区分析</a>
 						<a class="dropdown-item" href="register.html">
 							<span class="fa-stack fa-lg" style="font-size: 10px;">
 							  <i class="fa fa-circle-o-notch fa-stack-2x"></i>
@@ -253,14 +253,14 @@
 				<div class="modal-dialog" role="document">
 					<div class="modal-content">
 						<div class="modal-header">
-							<h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+							<h5 class="modal-title" id="exampleModalLabel">你要离开吗？</h5>
 							<button class="close" type="button" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">×</span>
             </button>
 						</div>
-						<div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+						<div class="modal-body">选择“登出”如果您要关闭该会话</div>
 						<div class="modal-footer">
-							<button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+							<button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
 							<a class="btn btn-primary" href="login.html">登出</a>
 						</div>
 					</div>
@@ -352,8 +352,8 @@
 										<select class="form-control select select-primarymbl" id="fast-selected-layer">
 											<option value="2">林场小班</option>
 											<option value="3">公益林</option>
-											<option value="8">古树名木</option>
-										</select>
+<!--											<option value="8">古树名木</option>
+-->										</select>
 									</div>
 
 									<div class="col-md-2">
@@ -371,7 +371,7 @@
 										<select class="form-control select select-primary select-block mbl" id="fields-quick"></select>
 									</div>
 									<div class="col-md-3 offset-md-1">
-										<select class="form-control select select-primary select-block mbl">
+										<select class="form-control select select-primary select-block mbl" id="selectedSymbol">
 											<option value=">">大于</option>
 											<option value=">=">大于等于</option>
 											<option value="=">等于</option>
@@ -380,14 +380,14 @@
 										</select>
 									</div>
 									<div class="col-md-3 offset-md-1">
-										<input type="text" class="form-control" placeholder="输入属性值" />
+										<input type="text" class="form-control" placeholder="输入属性值" id="inputText" />
 									</div>
 								</div>
 							</div>
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-							<button type="submit" class="btn btn-primary" onclick="quickQuery()">确认</button>
+							<button type="submit" class="btn btn-primary" onclick="enableSingleBufferService()">确认</button>
 						</div>
 					</div>
 				</div>
@@ -406,7 +406,7 @@
 										<select class="form-control select select-primarymbl">
 											<option value="2">林场小班</option>
 											<option value="3">公益林</option>
-											<option value="8">古树名木</option>
+											<option value="8">古树名木</option>										
 										</select>
 									</div>
 
@@ -808,10 +808,6 @@
 			});
 		}
 
-		// 选择的图层Id
-		var selectedLayerId;
-		// 选择的图层
-		var selectedLayer;
 		// 框选图形
 		var poly; //生成的图形
 		var previousIds = [];
@@ -919,40 +915,100 @@
 				for(var i = 0; i < layerFields.layer_5.length; i++) {
 					$('#fields-quick').append(str(i + 1, layerFields.layer_5[i]));
 				}
-			} else if($(this).val() == 8) {
-				for(var i = 0; i < layerFields.layer_0.length; i++) {
-					$('#fields-quick').append(str(i + 1, layerFields.layer_0[i]));
-				}
 			}
+//			} else if($(this).val() == 8) {
+////				for(var i = 0; i < layerFields.layer_0.length; i++) {
+////					$('#fields-quick').append(str(i + 1, layerFields.layer_0[i]));
+////				}
+//				for (key in layerFields.layer_0) {
+//					$('#fields-quick').append(str(layerFields.layer_0[key], key));
+//				}
+//			}
 		});
+		
+		const selectedLayers = [
+			featurelayer_7,
+			featurelayer_6,
+			featurelayer_5,
+			featurelayer_4,
+			featurelayer_3,
+			featurelayer_2,
+			featurelayer_1,
+			featurelayer_0
+		]
 
-		// GP单缓冲
-		var singleBuffer;
-		var bufferSingleLayer = L.featureGroup();
-		map.addLayer(bufferSingleLayer);
-		const singleBufferService = () => {
-			singleBuffer = L.esri.GP.service({
-				url: "http://111.231.64.206:8080/arcgis/rest/services/Buffer/GPServer/Buffer",
-				useCors: true
+		function enableSingleBufferService() {
+			// 属性查询
+			var previousIds = [];
+			// 选择的图层Id
+			var selectedLayerId;
+			var selectedField;
+			var selectedSymbol;
+			var inputText;
+			// 选择的图层
+			var selectedLayer;
+			selectedLayerId = $('#fast-selected-layer option:selected').val();
+			selectedLayer = selectedLayers[selectedLayerId - 1];
+			console.log(selectedLayerId);
+			// 选择的字段
+			selectedField = $('#fields-quick option:selected').text();
+			console.log(selectedField);
+			// 选择的符号
+			selectedSymbol = $('#selectedSymbol option:selected').val();
+			console.log(selectedSymbol);
+			// 输入的值
+			inputText = $('#inputText').val();
+			console.log(inputText);
+			selectedLayer.query().where(selectedField + selectedSymbol + "'" + inputText + "'").run(function(error, featureCollection, response) {
+				if(featureCollection.features.length > 0) {
+					queryFeatures = L.geoJSON(featureCollection.features).addTo(map);
+					console.log(featureCollection.features);
+					console.log(selectedField + selectedSymbol + "'" + inputText + "'");
+				}
 			});
-
-			singleBuffer.setParam("distance", 50);
-
-			map.on('click', function(evt) {
-				bufferSingleLayer.clearLayers();
-				singleBuffer.setParam("input", evt.target.feature);
-				const bufferCallback = (error, response, raw) => {
-					bufferSingleLayer.addLayer(L.geoJSON(response.output));
-				};
-				singleBuffer.run(bufferCallback)
-			});
+			$('#fastSearch').modal('hide');
 		}
+
+		//		function enableSingleBufferService() {
+		//			featurelayer_6.query().where("面积>250").run(function(error, featureCollection, response) {
+		//				if(featureCollection.features.length) {
+		//					queryFeatures = L.geoJSON(featureCollection.features).addTo(map);
+		//					console.log(featureCollection.features);
+		//				}
+		//			});
+		//		}
+
+		//		// GP点多环缓冲
+		//		var bufferSingleLayer = L.featureGroup();
+		//		map.addLayer(bufferSingleLayer);
+		//		var singleBufferService = L.esri.GP.service({
+		//			url: "http://111.231.64.206:8080/arcgis/rest/services/PointMultiRingBuffer/GPServer/MultiRingBuffer",
+		//			useCors: true
+		//		});
+		//		var singleBufferTask = singleBufferService.createTask();
+		//
+		//		const enableSingleBufferService = () => {
+		//
+		//			//			singleBufferTask.setParam("distances", "50");
+		//
+		//			map.on('click', function(evt) {
+		//				bufferSingleLayer.clearLayers();
+		//				singleBufferTask.setParam("input", evt.target.feature);
+		//				console.log(evt.target);
+		//				singleBufferTask.run(function(error, response, raw) {
+		//					bufferSingleLayer.addLayer(L.geoJson(response.output));
+		//					console.log(response);
+		//				})
+		//			});
+		//		}
 
 		// 清除选择以及图形
 		function DeleteGraphics() {
 			map.off("click");
 			//			map.off("dblclick");
-			//			map.removeLayer(queryFeatures);
+			if (queryFeatures) {
+				map.removeLayer(queryFeatures);
+			}
 			if(poly) {
 				map.removeLayer(poly);
 			}

@@ -4,17 +4,17 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>场长制森林资源管理系统|登录</title>
-		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
-		<link rel="stylesheet" type="text/css" href="css/login.css"/>
-		<link rel="stylesheet" type="text/css" href="lib/font-awesome/css/font-awesome.min.css"/>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+		<link rel="stylesheet" type="text/css" href="css/login.css" />
+		<link rel="stylesheet" type="text/css" href="lib/font-awesome/css/font-awesome.min.css" />
 	</head>
 
 	<body>
 		<div class="container">
 			<div class="card card-container" style="height: 100%;">
 				<!-- <img class="profile-img-card" src="//lh3.googleusercontent.com/-6V8xOA6M7BA/AAAAAAAAAAI/AAAAAAAAAAA/rzlHcD0KYwo/photo.jpg?sz=120" alt="" /> -->
-				<img id="profile-img" class="profile-img-card" src="./img/forest.png"/>
-				
+				<img id="profile-img" class="profile-img-card" src="./img/forest.png" />
+
 				<p id="profile-name" class="profile-name-card">场长制森林资源管理系统</p>
 				<form class="form-signin">
 					<span id="reauth-email" class="reauth-email"></span>
@@ -25,7 +25,7 @@
                         <input type="checkbox" value="remember-me"> 记住密码
                     </label>
 					</div>
-					<button class="btn btn-lg btn-primary btn-block btn-signin" type="submit">登录</button>
+					<button id="login" class="btn btn-lg btn-primary btn-block btn-signin" type="submit">登录</button>
 				</form>
 				<!-- /form -->
 				<a href="#" class="forgot-password">
@@ -36,8 +36,19 @@
 		</div>
 		<!-- /container -->
 	</body>
+	<script src="vendor/jquery/jquery.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
-	<script src="js/jquery-3.1.1.min.js"></script>
-	<script src="js/login.js" ></script>
+	<script src="js/login.js"></script>
+	<script>
+		$('#login').on('click', function() {
+			var usernaeme = $('#inputEmail').text();
+			var usrPassword = $('#inputPassword').text();
+			console.log(usernaeme);
+			console.log(usrPassword);
+			if(username == "admin" && usrPassword == "admin") {
+				window.location.href = "index.html";
+			}
+		})
+	</script>
 
 </html>
